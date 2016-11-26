@@ -1,3 +1,4 @@
 Django==1.10.3
 channels==0.17.3
+irc3==0.9.6
 
