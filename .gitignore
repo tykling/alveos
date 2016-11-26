@@ -1,0 +1,23 @@
+# compiled / optimized / DLL files
+*.py[cod]
+
+# env config
+environment_settings.py
+
+# database
+db.sqlite3
+
+# whoosh index files
+*.seg
+MAIN_WRITELOCK
+*.toc
+*.pst
+*.trm
+*.ctmp
+
+#virtualenv
+venv/
+
+# gettext
+*.mo
+
