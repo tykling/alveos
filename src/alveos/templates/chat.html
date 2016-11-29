@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+{% load static from staticfiles %}
+{% block content %}
+        <div class="container" id="chatdiv" style="padding-top: 2em;">
+          <div class="form-group">
+            <textarea class="form-control" rows="30" id="chatwindow"></textarea>
+            <input type="text" id="chatinput" class="form-control input-lg">
+          </div>
+        </div>
+        <script src="{% static 'js/alveos.js' %}"></script>
+{% endblock content %}
+

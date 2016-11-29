@@ -21,3 +21,6 @@ venv/
 # gettext
 *.mo
 
+# redis
+dump.rdb
+

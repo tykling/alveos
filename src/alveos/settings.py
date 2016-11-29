@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'alveos',
     'channels',
+    'bootstrap3',
 ]
 
 MIDDLEWARE = [
@@ -120,10 +121,24 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/1.10/howto/static-files/
 
 STATIC_URL = '/static/'
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, "static_src"),
+]
+STATIC_ROOT = os.path.join(BASE_DIR, "static")
 
 CHANNEL_LAYERS = {
     "default": {
         "BACKEND": "asgiref.inmemory.ChannelLayer",
+        "ROUTING": "alveos.routing.channel_routing",
+    },
+}
+
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "asgi_redis.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": [("127.0.0.1", 6379)],
+        },
         "ROUTING": "alveos.routing.channel_routing",
     },
 }

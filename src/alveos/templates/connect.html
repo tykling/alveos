@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+{% load bootstrap3 %}
+{% block content %}
+        <div class="container" id="connectdiv" style="padding-top: 2em;">
+          {% bootstrap_form_errors form layout='inline' %}
+          <form method="POST">
+            {% csrf_token %}
+            {% bootstrap_form form %}
+            {% buttons %}
+              <button type="submit" class="btn btn-primary">Connect</button>
+            {% endbuttons %}
+          </form>
+        </div>
+{% endblock content %}
+
