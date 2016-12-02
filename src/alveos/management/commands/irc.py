@@ -21,7 +21,7 @@ class Command(BaseCommand):
 
         # connect to IRC
         config = {
-            'nick': session['nickname'],
+            'nick': session.get_decoded()['nickname'],
             'autojoins': ['#alveos'],
             'host': 'ircd.tyknet.dk',
             'port': 6697,

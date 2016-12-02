@@ -18,41 +18,78 @@ class Plugin(object):
         self.bot = bot
         self.log = self.bot.log
 
-    def server_ready(self):
+
+    def server_ready(self, **kwargs):
         """triggered after the server sent the MOTD (require core plugin)"""
+        print("inside server_ready")
+        print(kwargs)
+        self.bot.sysmsg_to_browser('Done connecting to IRC server!')
         self.bot.loop.call_later(1, self.bot.get_messages)
 
-    def connection_lost(self):
-        """triggered when connection is lost"""
-        pass
 
-    def connection_made(self):
+    def connection_lost(self, **kwargs):
+        """triggered when connection is lost"""
+        print("inside connection_lost")
+        print(kwargs)
+        self.bot.sysmsg_to_browser('Lost connection to IRC server!')
+
+
+    def connection_made(self, **kwargs):
         """triggered when connection is up"""
-        pass
+        print("inside connection_made")
+        print(kwargs)
+        self.bot.sysmsg_to_browser('Connection to IRC server established...')
+
+
+    @irc3.event(irc3.rfc.JOIN_PART_QUIT)
+    def on_join_part_quit(self, **kwargs):
+        """{'mask': 'tykling!tykling@example.com', 'data': None, 'channel': '#alveos', 'event': 'JOIN'}"""
+        print("inside on_join_part_quit()")
+        print(kwargs)
+        self.bot.ircmsg_to_browser(kwargs)
+
 
     @irc3.event(irc3.rfc.PRIVMSG)
-    def on_privmsg(self, mask=None, data=None, **kw):
-        print("received privmsg from %s -> %s" % (mask.nick, data))
-        # get django session using session_key from commandline
-        try:
-            session = Session.objects.get(session_key=self.bot.config.django_session_key)
-        except Session.DoesNotExist:
-            print("Session with session_key %s not found" % self.bot.config.django_session_key)
-            return
+    def on_privmsg(self, **kwargs):
+        """{'target': '#alveos', 'event': 'PRIVMSG', 'data': 'testing123', 'mask': 'tykling!tykling@example.com'}"""
+        print("inside on_privmsg")
+        print(kwargs)
+        self.bot.ircmsg_to_browser(kwargs)
 
-        payload = {
-            "sender": mask.nick,
-            "message": data
-        }
-        Channel(self.bot.config.reply_channel).send({'text': json.dumps(payload)})
- 
+
     @irc3.extend
     def get_messages(self):
         queuename = 'to-ircbot-%s' % self.bot.config.django_session_key
         channel, message = channel_layer.receive_many([queuename])
         if message and channel:
+            print("got message on WS: %s" % message['text'])
             self.bot.privmsg(message['text']['target'], message['text']['message'])
-            self.bot.loop.call_later(1, self.bot.get_messages)
-        else:
-            self.bot.loop.call_later(5, self.bot.get_messages)
+        self.bot.loop.call_later(1, self.bot.get_messages)
+
+
+    @irc3.extend
+    def sysmsg_to_browser(self, message):
+        self.bot.send_to_browser({"alveos_version": "alveos-v1", "type": 'system_message', 'payload': {'message': message}})
+
+
+    @irc3.extend
+    def ircmsg_to_browser(self, message):
+        self.bot.send_to_browser({"alveos_version": "alveos-v1", 'type': 'irc_message', 'payload': message})
+
+
+    @irc3.extend
+    def send_to_browser(self, payload):
+        print("send to channel %s: %s" % (self.bot.config.reply_channel, payload))
+        Channel(self.bot.config.reply_channel).send({'text': json.dumps(payload)})
+
+
+    @irc3.extend
+    def get_django_session(self):
+        # get django session using session_key from commandline
+        try:
+            return Session.objects.get(session_key=self.bot.config.django_session_key)
+        except Session.DoesNotExist:
+            print("Session with session_key %s not found" % self.bot.config.django_session_key)
+            return False
+
 

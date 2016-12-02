@@ -8,7 +8,7 @@ import json, irc3, asyncio
 def ws_connect(message):
     # save reply channel name in http session
     message.http_session['reply_channel'] = message.reply_channel.name
-    message.reply_channel.send({'text': 'Connected to alveos server!'})
+    #message.reply_channel.send({'text': 'Connected to alveos server!'})
 
 
 # Connected to websocket.receive

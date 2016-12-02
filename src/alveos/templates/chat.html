@@ -2,10 +2,22 @@
 {% load static from staticfiles %}
 {% block content %}
         <div class="container" id="chatdiv" style="padding-top: 2em;">
-          <div class="form-group">
-            <textarea class="form-control" rows="30" id="chatwindow"></textarea>
-            <input type="text" id="chatinput" class="form-control input-lg">
+          <div class="alert alert-info" id="wsstatus">Websocket is not yet connected</div>
+          <div style="height: 50em;">
+            <ul class="nav nav-tabs" role="tablist">
+              <li role="presentation" class="active">
+                <a href="#status" aria-controls="status" role="tab" data-toggle="tab" class="tabs">Status</a>
+              </li>
+            </ul>
+            <div class="tab-content">
+              <div role="tabpanel" class="tab-pane active" id="status">
+                <h3>Status window</h3>
+                <table class="table table-condensed table-responsive chatwindow">
+                </table>
+              </div>
+            </div>
           </div>
+          <input type="text" id="chatinput" class="form-control input-lg">
         </div>
         <script src="{% static 'js/alveos.js' %}"></script>
 {% endblock content %}
