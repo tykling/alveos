@@ -1,14 +1,22 @@
 from channels import Channel
 from channels.sessions import channel_and_http_session, http_session 
-import json, irc3, asyncio
+import json, irc3, asyncio, os
+from django.db import connection
+from django.core.management import call_command
 
 
 # Connected to websocket.connect
 @channel_and_http_session
 def ws_connect(message):
-    # save reply channel name in http session
+    # save the name of the reply channel for this websocket session in the django http session
     message.http_session['reply_channel'] = message.reply_channel.name
-    #message.reply_channel.send({'text': 'Connected to alveos server!'})
+
+    # close DB connection before forking
+    connection.close()
+    new_pid = os.fork()
+    if not new_pid:
+        # Inside the forked process, run the irc worker
+        call_command('irc', session_key=message.http_session.session_key)
 
 
 # Connected to websocket.receive
@@ -26,15 +34,27 @@ def ws_message(message):
         print(message.content['text'])
         return
 
-    # Add the message to the channel for the irc bot handling this session
-    channelname = 'to-ircbot-%s' % message.http_session.session_key
+    # TODO: Handle commands (stuff beginning with a /) here, for now just pass everything to the irc worker
+    channelname = 'irc-worker-%s' % message.http_session.session_key
     Channel(channelname).send(payload)
-    print("added incoming websocket message to channel %s" % channelname)
 
 
 # Connected to websocket.disconnect
+@channel_and_http_session
 def ws_disconnect(message):
-    # TODO: the websocket was disconnected, kill the irc session here
-    pass
+    print("the websocket for session %s was disconnected, sending kill command to the irc worker" % message.http_session.session_key)
+    channelname = 'to-ircbot-%s' % message.http_session.session_key
+    Channel(channelname).send({
+        'text': {
+            'alveos_type': 'alveos_worker_command',
+            'alveos_version': 'alveos_v1',
+            'payload': {
+                'command': 'die',
+                'reason': 'websocket disconnected'
+            }
+        }
+    })
+    # the reply channel is no longer needed
+    del message.http_session['reply_channel']
 
 

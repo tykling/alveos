@@ -43,7 +43,6 @@ class Plugin(object):
 
     @irc3.event(irc3.rfc.JOIN_PART_QUIT)
     def on_join_part_quit(self, **kwargs):
-        """{'mask': 'tykling!tykling@example.com', 'data': None, 'channel': '#alveos', 'event': 'JOIN'}"""
         print("inside on_join_part_quit()")
         print(kwargs)
         self.bot.ircmsg_to_browser(kwargs)
@@ -51,7 +50,6 @@ class Plugin(object):
 
     @irc3.event(irc3.rfc.PRIVMSG)
     def on_privmsg(self, **kwargs):
-        """{'target': '#alveos', 'event': 'PRIVMSG', 'data': 'testing123', 'mask': 'tykling!tykling@example.com'}"""
         print("inside on_privmsg")
         print(kwargs)
         self.bot.ircmsg_to_browser(kwargs)
@@ -59,11 +57,20 @@ class Plugin(object):
 
     @irc3.extend
     def get_messages(self):
-        queuename = 'to-ircbot-%s' % self.bot.config.django_session_key
-        channel, message = channel_layer.receive_many([queuename])
+        channel, message = channel_layer.receive_many(['to-ircbot-%s' % self.bot.config.django_session_key])
         if message and channel:
-            print("got message on WS: %s" % message['text'])
-            self.bot.privmsg(message['text']['target'], message['text']['message'])
+            print("got message from channel: %s" % message['text'])
+            if message['text']['type'] == 'irc-message':
+                self.bot.privmsg(message['text']['target'], message['text']['message'])
+            elif message['text']['type'] == 'command':
+                if message['text']['command'] == 'die':
+                    self.bot.quit(reason=message['text']['reason'])
+                else:
+                    print("unsupported command received: %s" % message['text']['command'])
+            else:
+                print("message with unsupported type '%s' received, not processing" % message['text']['type'])
+
+        # call this function again in 1 second
         self.bot.loop.call_later(1, self.bot.get_messages)
 
 

@@ -100,13 +100,13 @@ $( document ).ready(function() {
     // when websocket is done connecting
     socket.onopen = function() {
         $( "#wsstatus" ).removeClass("alert-danger alert-info").addClass("alert-success").text("Websocket is connected");
-        ShowMessage('Websocket connected!', tab="Status");
+        ShowMessage('Websocket connected!', tab="status");
     }
 
     // when websocket is done disconnecting
     socket.onclose = function() {
         $( "#wsstatus" ).removeClass("alert-success alert-info").addClass("alert-danger").text("Websocket has been disconnected");
-        ShowMessage('Websocket has been disconnected...', tab="Status");
+        ShowMessage('Websocket has been disconnected...', tab="status");
     }
 
     // If the page was reloaded the socket is already open, so call onopen() manually here
